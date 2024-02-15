@@ -30,16 +30,16 @@ class BookDAL:
     async def delete_book(self, book_id: UUID) -> Union[UUID, None]:
         query = delete(Book).where(Book.id == book_id).returning(Book.id)
         res = await self.db_session.execute(query)
-        deleted_user_id_row = res.fetchone()
-        if deleted_user_id_row is not None:
-            return deleted_user_id_row[0]
+        deleted_book_id_row = res.fetchone()
+        if deleted_book_id_row is not None:
+            return deleted_book_id_row[0]
 
     async def get_book_by_id(self, book_id: UUID) -> Union[Book, None]:
         query = select(Book).where(Book.id == book_id)
         res = await self.db_session.execute(query)
-        user_row = res.fetchone()
-        if user_row is not None:
-            return user_row[0]
+        book_row = res.fetchone()
+        if book_row is not None:
+            return book_row[0]
 
 
 class UserDAL:
