@@ -6,9 +6,10 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.actions.book import _delete_book, _get_book_by_id, _create_new_book
-from api.schemas import ShowBook, BookCreate, DeleteBookResponse
+from api.actions.auth import get_current_admin_from_token
+from api.schemas import ShowBook, BookCreate, DeleteModelResponse
 
-from db.models import Book
+from db.models import Book, Admin
 from db.session import get_db
 
 logger = getLogger(__name__)
@@ -17,7 +18,8 @@ router = APIRouter()
 
 
 @router.post("/", response_model=ShowBook)
-async def create_book(body: BookCreate, db: AsyncSession = Depends(get_db)) -> ShowBook:
+async def create_book(body: BookCreate, db: AsyncSession = Depends(get_db),
+    current_admin: Admin = Depends(get_current_admin_from_token),) -> ShowBook:
     try:
         return await _create_new_book(body, db)
     except IntegrityError as err:
@@ -25,11 +27,12 @@ async def create_book(body: BookCreate, db: AsyncSession = Depends(get_db)) -> S
         raise HTTPException(status_code=503, detail=f"Database error: {err}")
 
 
-@router.delete("/", response_model=DeleteBookResponse)
+@router.delete("/", response_model=DeleteModelResponse)
 async def delete_book(
     book_id: UUID,
     db: AsyncSession = Depends(get_db),
-) -> DeleteBookResponse:
+    current_admin: Admin = Depends(get_current_admin_from_token),
+) -> DeleteModelResponse:
     book_for_deletion = await _get_book_by_id(book_id, db)
     if book_for_deletion is None:
         raise HTTPException(
@@ -40,7 +43,7 @@ async def delete_book(
         raise HTTPException(
             status_code=404, detail=f"Book with id {book_id} not found."
         )
-    return DeleteBookResponse(deleted_book_id=deleted_book_id)
+    return DeleteModelResponse(deleted_book_id=deleted_book_id)
 
 
 @router.get("/", response_model=ShowBook)

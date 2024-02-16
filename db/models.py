@@ -23,13 +23,12 @@ class Book(Base):
     download_link = Column(String, nullable=False, unique=True)
 
 
-class User(Base):
-    __tablename__ = "users"
+class Admin(Base):
+    __tablename__ = "admins"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     nickname = Column(String, nullable=False, unique=True)
     hashed_password = Column(String, nullable=False)
-    roles = Column(ARRAY(String), nullable=False)
 
     @property
     def is_superadmin(self) -> bool:

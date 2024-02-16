@@ -19,7 +19,7 @@ test_async_session = sessionmaker(test_engine, expire_on_commit=False, class_=As
 
 CLEAN_TABLES = [
     'books',
-    'users'
+    'admins'
 ]
 
 
