@@ -26,6 +26,8 @@ async def create_admin(
         db: AsyncSession = Depends(get_db),
         current_admin: Admin = Depends(get_current_admin_from_token)) -> ShowAdmin:
     try:
+        if not current_admin.is_superadmin:
+            raise HTTPException(status_code=403, detail="Forbidden.")
         return await _create_new_admin(body, db)
     except IntegrityError as err:
         logger.error(err)
@@ -38,6 +40,8 @@ async def delete_admin(
     db: AsyncSession = Depends(get_db),
     current_admin: Admin = Depends(get_current_admin_from_token),
 ) -> DeleteModelResponse:
+    if not current_admin.is_superadmin:
+        raise HTTPException(status_code=403, detail="Forbidden.")
     deleted_admin_id = await _delete_admin(admin_id, db)
     if deleted_admin_id is None:
         raise HTTPException(
@@ -52,6 +56,8 @@ async def get_admin_by_id(
     db: AsyncSession = Depends(get_db),
     current_admin: Admin = Depends(get_current_admin_from_token),
 ) -> ShowAdmin:
+    if not current_admin.is_superadmin:
+        raise HTTPException(status_code=403, detail="Forbidden.")
     admin = await _get_admin_by_id(admin_id, db)
     if admin is None:
         raise HTTPException(

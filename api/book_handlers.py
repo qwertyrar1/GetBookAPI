@@ -43,7 +43,7 @@ async def delete_book(
         raise HTTPException(
             status_code=404, detail=f"Book with id {book_id} not found."
         )
-    return DeleteModelResponse(deleted_book_id=deleted_book_id)
+    return DeleteModelResponse(deleted_id=deleted_book_id)
 
 
 @router.get("/", response_model=ShowBook)

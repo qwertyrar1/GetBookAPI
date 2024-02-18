@@ -5,6 +5,7 @@ from api.schemas import ShowAdmin
 from api.schemas import AdminCreate
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.dals import AdminDAL
+from db.models import PortalRole, Admin
 from hashing import Hasher
 
 
@@ -14,6 +15,7 @@ async def _create_new_admin(body: AdminCreate, session) -> ShowAdmin:
         admin = await admin_dal.create_admin(
             nickname=body.nickname,
             hashed_password=Hasher.get_password_hash(body.password),
+            roles=[PortalRole.ROLE_PORTAL_ADMIN, ],
         )
         return ShowAdmin(
             admin_id=admin.id,

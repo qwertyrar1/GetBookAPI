@@ -50,10 +50,12 @@ class AdminDAL:
         self,
         nickname: str,
         hashed_password: str,
+        roles: list[PortalRole]
     ) -> Admin:
         new_admin = Admin(
             nickname=nickname,
             hashed_password=hashed_password,
+            roles=roles
         )
         self.db_session.add(new_admin)
         await self.db_session.flush()
