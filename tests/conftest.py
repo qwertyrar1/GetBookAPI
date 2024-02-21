@@ -1,3 +1,4 @@
+from datetime import timedelta
 from typing import Generator, Any
 import pytest
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
@@ -9,13 +10,7 @@ import os
 import asyncio
 from db.session import get_db
 import asyncpg
-
-
-# create async engine for interaction with database
-test_engine = create_async_engine(settings.TEST_DATABASE_URL, future=True, echo=True)
-
-# create session for the interaction with database
-test_async_session = sessionmaker(test_engine, expire_on_commit=False, class_=AsyncSession)
+from security import create_access_token
 
 CLEAN_TABLES = [
     'books',
@@ -54,6 +49,11 @@ async def clean_tables(async_session_test):
 
 
 async def _get_test_db():
+    # create async engine for interaction with database
+    test_engine = create_async_engine(settings.TEST_DATABASE_URL, future=True, echo=True)
+
+    # create session for the interaction with database
+    test_async_session = sessionmaker(test_engine, expire_on_commit=False, class_=AsyncSession)
     try:
         yield test_async_session()
     finally:
@@ -90,6 +90,16 @@ async def get_book_from_database(asyncpg_pool):
 
 
 @pytest.fixture
+async def get_admin_from_database(asyncpg_pool):
+
+    async def get_admin_from_database_by_uuid(admin_id: str):
+        async with asyncpg_pool.acquire() as connection:
+            return await connection.fetch("""SELECT * FROM admins WHERE id = $1;""", admin_id)
+
+    return get_admin_from_database_by_uuid
+
+
+@pytest.fixture
 async def create_book_in_database(asyncpg_pool):
     async def create_book_in_database_by_data(id: str, name: str, download_link: str):
         async with asyncpg_pool.acquire() as connection:
@@ -98,4 +108,18 @@ async def create_book_in_database(asyncpg_pool):
     return create_book_in_database_by_data
 
 
+@pytest.fixture
+async def create_admin_in_database(asyncpg_pool):
+    async def create_admin_in_database_by_data(id: str, nickname: str, hashed_password, roles: list):
+        async with asyncpg_pool.acquire() as connection:
+            return await connection.execute("""INSERT INTO admins VALUES ($1, $2, $3, $4)""",
+                                            str(id), nickname, hashed_password, roles)
+    return create_admin_in_database_by_data
 
+
+def create_test_auth_headers_for_admin(nickname: str) -> dict[str, str]:
+    access_token = create_access_token(
+        data={"sub": nickname},
+        expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+    )
+    return {"Authorization": f"Bearer {access_token}"}

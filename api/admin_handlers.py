@@ -45,7 +45,7 @@ async def delete_admin(
     deleted_admin_id = await _delete_admin(admin_id, db)
     if deleted_admin_id is None:
         raise HTTPException(
-            status_code=404, detail=f"User with id {admin_id} not found."
+            status_code=404, detail=f"Admin with id {admin_id} not found."
         )
     return DeleteModelResponse(deleted_id=deleted_admin_id)
 
@@ -61,7 +61,7 @@ async def get_admin_by_id(
     admin = await _get_admin_by_id(admin_id, db)
     if admin is None:
         raise HTTPException(
-            status_code=404, detail=f"User with id {admin_id} not found."
+            status_code=404, detail=f"Admin with id {admin_id} not found."
         )
     return admin
 
